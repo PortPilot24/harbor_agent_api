@@ -1,9 +1,40 @@
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
-google-generativeai==0.3.2
-chromadb==0.4.18
-python-dotenv==1.0.0
-httpx==0.25.2
-python-multipart==0.0.6
+accelerate==1.9.0
+chromadb==1.0.15
+fastapi==0.116.1
+google-generativeai==0.8.5
+kubernetes==33.1.0
+lxml==6.0.0
+onnxruntime==1.22.1
+posthog==5.4.0
+PyMuPDF==1.26.3
+python-pptx==1.0.2
+scikit-learn==1.7.1
+sentence-transformers==5.0.0
+torch==2.7.1
+transformers==4.55.0
+uvicorn==0.35.0
+xlsxwriter==3.2.5
+
+
+
+# # FastAPI 및 웹 서버
+# fastapi==0.104.1
+# uvicorn[standard]==0.24.0
+# pydantic==2.11.7
+
+# # Google Gemini AI
+# google-generativeai==0.8.5
+
+# # ChromaDB (벡터 데이터베이스)
+# chromadb==1.0.15
+
+# # 기타 유틸리티
+# python-dotenv==1.1.1
+# httpx==0.28.1
+# sentence-transformers==2.2.2 
+
+# # 로깅 (선택적)
+# coloredlogs==15.0.1
+
+
+# #pip install fastapi uvicorn[standard] pydantic google-generativeai chromadb python-dotenv sentence-transformers coloredlogs
