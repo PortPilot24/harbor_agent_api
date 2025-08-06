@@ -6,7 +6,6 @@ import os
 import sys
 from pathlib import Path
 
-# --- ✨ 핵심 해결 코드 시작 ✨ ---
 # 현재 스크립트가 있는 venv 폴더의 site-packages 경로를 찾아서 sys.path에 추가합니다.
 # 이렇게 하면 Uvicorn의 자식 프로세스도 패키지를 확실하게 찾을 수 있습니다.
 venv_path = Path(sys.executable).parent.parent
