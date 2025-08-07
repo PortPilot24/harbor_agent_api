@@ -182,18 +182,7 @@ INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
   "tool_calls": [
     {
       "tool": "search_legal_documents",
-      "arguments": {
-        "query": "컨테이너 하역 안전 규정"
-      },
-      "result": {
-        "message": "2개의 법률 정보를 찾았습니다.",
-        "results": [
-          {
-            "content": "항만안전작업규칙 제10조 (하역 작업 시 안전 조치) ...",
-            "source_file": "항만안전작업규칙.pdf"
-          }
-        ]
-      }
+      "source_file": "항만안전작업규칙.pdf"
     }
   ],
   "iterations": 2,
