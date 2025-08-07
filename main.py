@@ -1,3 +1,4 @@
+import json
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -7,7 +8,7 @@ import logging
 from contextlib import asynccontextmanager
 
 # 로컬 import (같은 디렉토리의 다른 파일들)
-from models import QueryRequest, QueryResponse, HealthResponse
+from models import QueryRequest, QueryResponse, HealthResponse, ToolCall
 from harbor_agent import HarborAgent
 
 # 로깅 설정
@@ -101,11 +102,41 @@ async def process_query(request: QueryRequest):
         
         # Agent로 쿼리 처리
         result = agent.process_query(request.query)
-        
+        logger.info(f"에이전트 원본 결과: {result}")
+
+        # 1. tool_calls 데이터 가공 (이전과 동일)
+        simplified_tool_calls = []
+        original_tool_calls = result.get('tool_calls', [])
+        for call in original_tool_calls:
+            source_file = None
+            if call.get('result') and call['result'].get('results'):
+                results_list = call['result']['results']
+                if results_list and results_list[0].get('source_file'):
+                    source_file = results_list[0].get('source_file')
+            
+            # Pydantic 모델 객체로 만들어서 추가
+            simplified_tool_calls.append(ToolCall(
+                tool=call.get('tool'),
+                source_file=source_file
+            ))
+
+        # 2. 'answer' 필드 가공 (깨짐 문제 해결)
+        final_answer = result.get('answer', '')
+
+        # 'answer'가 JSON 문자열일 경우, 내용물만 추출
+        try:
+            answer_data = json.loads(final_answer)
+            if 'content' in answer_data:
+                final_answer = answer_data['content']
+        except (json.JSONDecodeError, TypeError):
+            # 파싱 실패 시 원본 텍스트 사용
+            pass
+
+        # 최종적으로 가공된 데이터로 응답 모델 생성
         response = QueryResponse(
-            answer=result['answer'],
+            answer=final_answer, # 깨끗해진 answer 사용
             query=request.query,
-            tool_calls=result.get('tool_calls', []),
+            tool_calls=simplified_tool_calls,
             iterations=result.get('iterations', 1),
             success=True
         )

@@ -13,41 +13,53 @@ class QueryRequest(BaseModel):
         }
 
 class ToolCall(BaseModel):
-    """도구 호출 정보 모델"""
-    tool: str = Field(..., description="사용된 도구명")
-    arguments: Optional[Dict[str, Any]] = Field(None, description="도구 인자")
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "tool": "regulation_search",
-                "arguments": {"keyword": "안전규정"}
-            }
-        }
+    tool: str
+    source_file: Optional[str] = None
 
+# 최종 응답을 위한 모델
 class QueryResponse(BaseModel):
-    """쿼리 응답 모델"""
-    answer: str = Field(..., description="Agent의 답변")
-    query: str = Field(..., description="원본 쿼리")
-    tool_calls: List[ToolCall] = Field(default_factory=list, description="사용된 도구들")
-    iterations: int = Field(default=1, description="처리 반복 횟수")
-    success: bool = Field(default=True, description="처리 성공 여부")
+    answer: str
+    query: str
+    tool_calls: List[ToolCall]
+    iterations: int
+    success: bool
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "answer": "컨테이너 하역 시에는 다음과 같은 안전 규정을 준수해야 합니다...",
-                "query": "컨테이너 하역 시 안전 규정에 대해 알려주세요",
-                "tool_calls": [
-                    {
-                        "tool": "regulation_search",
-                        "arguments": {"keyword": "안전규정"}
-                    }
-                ],
-                "iterations": 2,
-                "success": True
-            }
-        }
+# class ToolCall(BaseModel):
+#     """도구 호출 정보 모델"""
+#     tool: str = Field(..., description="사용된 도구명")
+#     arguments: Optional[Dict[str, Any]] = Field(None, description="도구 인자")
+    
+#     class Config:
+#         json_schema_extra = {
+#             "example": {
+#                 "tool": "regulation_search",
+#                 "arguments": {"keyword": "안전규정"}
+#             }
+#         }
+
+# class QueryResponse(BaseModel):
+#     """쿼리 응답 모델"""
+#     answer: str = Field(..., description="Agent의 답변")
+#     query: str = Field(..., description="원본 쿼리")
+#     tool_calls: List[ToolCall] = Field(default_factory=list, description="사용된 도구들")
+#     iterations: int = Field(default=1, description="처리 반복 횟수")
+#     success: bool = Field(default=True, description="처리 성공 여부")
+    
+#     class Config:
+#         json_schema_extra = {
+#             "example": {
+#                 "answer": "컨테이너 하역 시에는 다음과 같은 안전 규정을 준수해야 합니다...",
+#                 "query": "컨테이너 하역 시 안전 규정에 대해 알려주세요",
+#                 "tool_calls": [
+#                     {
+#                         "tool": "regulation_search",
+#                         "arguments": {"keyword": "안전규정"}
+#                     }
+#                 ],
+#                 "iterations": 2,
+#                 "success": True
+#             }
+#         }
 
 class HealthResponse(BaseModel):
     """헬스 체크 응답 모델"""
