@@ -132,7 +132,7 @@ celerybeat-schedule
 celerybeat.pid
 
 chroma_db
-
+ko-sroberta-multitask
 # SageMath parsed files
 *.sage.py
 
