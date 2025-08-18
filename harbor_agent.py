@@ -9,7 +9,6 @@ import google.generativeai as genai
 import os
 import re
 import time
-from chromadb.config import Settings
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -113,122 +112,31 @@ class GeminiClient:
 
 class ChromaDBManager:
     """ChromaDB 관리 클래스"""
-    def __init__(self, db_path: str = "./chroma_db"):
-        # ko-sroberta-multitask 모델을 사용하도록 설정
-        model_path = os.getenv('HF_MODEL_PATH', '/app/models/ko-sroberta-multitask')
-        
-        # HuggingFace Embedding Function 생성
-        from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
-        
-        try:
-            # 로컬 모델 경로가 존재하는지 확인
-            if os.path.exists(model_path):
-                logger.info(f"로컬 모델 사용: {model_path}")
-                self.embedding_function = SentenceTransformerEmbeddingFunction(
-                    model_name=model_path
-                )
-            else:
-                logger.info("로컬 모델을 찾을 수 없어 온라인 모델을 사용합니다")
-                self.embedding_function = SentenceTransformerEmbeddingFunction(
-                    model_name="jhgan/ko-sroberta-multitask"
-                )
-        except Exception as e:
-            logger.warning(f"ko-sroberta-multitask 모델 로드 실패, 기본 모델 사용: {e}")
-            # 기본 임베딩 함수 사용 (fallback)
-            self.embedding_function = None
-        
-        # ChromaDB 클라이언트 초기화
-        if self.embedding_function:
-            self.client = chromadb.PersistentClient(
-                path=db_path,
-                settings=Settings(allow_reset=True)
-            )
-        else:
-            self.client = chromadb.PersistentClient(path=db_path)
-        
+    def __init__(self, db_path: str = "./chroma_db"):  # 🔄 경로 수정
+        self.client = chromadb.PersistentClient(path=db_path)
         self.legal_collection = None
         self.manual_collection = None
-        
         try:
-            # 컬렉션 가져오기 (임베딩 함수 포함)
-            if self.embedding_function:
-                self.legal_collection = self.client.get_collection(
-                    name="legal_docs", 
-                    embedding_function=self.embedding_function
-                )
-                self.manual_collection = self.client.get_collection(
-                    name="legal_manuals", 
-                    embedding_function=self.embedding_function
-                )
-            else:
-                self.legal_collection = self.client.get_collection(name="legal_docs")
-                self.manual_collection = self.client.get_collection(name="legal_manuals")
-                
+            self.legal_collection = self.client.get_collection(name="legal_docs")
+            self.manual_collection = self.client.get_collection(name="legal_manuals")
             logger.info("ChromaDB 컬렉션 연결 성공")
-            
         except Exception as e:
             logger.error(f"ChromaDB 연결 실패: {e}")
-            
-            # 컬렉션이 없는 경우 생성 시도
-            try:
-                logger.info("기존 컬렉션을 찾을 수 없어 새로 생성을 시도합니다...")
-                if self.embedding_function:
-                    self.legal_collection = self.client.create_collection(
-                        name="legal_docs", 
-                        embedding_function=self.embedding_function
-                    )
-                    self.manual_collection = self.client.create_collection(
-                        name="legal_manuals", 
-                        embedding_function=self.embedding_function
-                    )
-                else:
-                    self.legal_collection = self.client.create_collection(name="legal_docs")
-                    self.manual_collection = self.client.create_collection(name="legal_manuals")
-                    
-                logger.info("새 컬렉션 생성 완료")
-            except Exception as create_error:
-                logger.error(f"컬렉션 생성도 실패: {create_error}")
 
     def search_legal(self, query: str, n_results: int = 3, where_filter: Optional[Dict] = None) -> List[SearchResult]:
-        if not self.legal_collection: 
-            logger.warning("legal_collection이 초기화되지 않았습니다")
-            return []
+        if not self.legal_collection: return []
         try:
-            results = self.legal_collection.query(
-                query_texts=[query], 
-                n_results=n_results, 
-                where=where_filter
-            )
-            return [
-                SearchResult(content=d, metadata=m, distance=dist) 
-                for d, m, dist in zip(
-                    results['documents'][0], 
-                    results['metadatas'][0], 
-                    results['distances'][0]
-                )
-            ]
+            results = self.legal_collection.query(query_texts=[query], n_results=n_results, where=where_filter)
+            return [SearchResult(content=d, metadata=m, distance=dist) for d, m, dist in zip(results['documents'][0], results['metadatas'][0], results['distances'][0])]
         except Exception as e:
             logger.error(f"법률 문서 검색 오류: {e}")
             return []
 
     def search_manual(self, query: str, n_results: int = 3, where_filter: Optional[Dict] = None) -> List[SearchResult]:
-        if not self.manual_collection: 
-            logger.warning("manual_collection이 초기화되지 않았습니다")
-            return []
+        if not self.manual_collection: return []
         try:
-            results = self.manual_collection.query(
-                query_texts=[query], 
-                n_results=n_results, 
-                where=where_filter
-            )
-            return [
-                SearchResult(content=d, metadata=m, distance=dist) 
-                for d, m, dist in zip(
-                    results['documents'][0], 
-                    results['metadatas'][0], 
-                    results['distances'][0]
-                )
-            ]
+            results = self.manual_collection.query(query_texts=[query], n_results=n_results, where=where_filter)
+            return [SearchResult(content=d, metadata=m, distance=dist) for d, m, dist in zip(results['documents'][0], results['metadatas'][0], results['distances'][0])]
         except Exception as e:
             logger.error(f"매뉴얼 검색 오류: {e}")
             return []
@@ -271,8 +179,8 @@ class HarborAgentTools:
 
 class HarborAgent:
     """항만 규정안내 및 상황대응 Agent"""
-    def __init__(self, api_key: str, db_path: str = "./chroma_db"):
-        self.gemini = GeminiClient(api_key)
+    def __init__(self, api_key: str, db_path: str = "./chroma_db"):  # 🔄 매개변수명 변경 및 경로 수정
+        self.gemini = GeminiClient(api_key)  # 🔄 매개변수명 변경
         self.db_manager = ChromaDBManager(db_path)
         self.tools = HarborAgentTools(self.db_manager)
         self.conversation_history = []

@@ -8,10 +8,10 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 # 5. 소스 코드 복사
 COPY . .
-# Hugging Face 모델 복사
-COPY ko-sroberta-multitask /app/models/ko-sroberta-multitask
-# 환경 변수 (선택 사항, Embedding 경로 지정)
-ENV HF_MODEL_PATH=/app/models/ko-sroberta-multitask
+# # Hugging Face 모델 복사
+# COPY ko-sroberta-multitask /app/models/ko-sroberta-multitask
+# # 환경 변수 (선택 사항, Embedding 경로 지정)
+# ENV HF_MODEL_PATH=/app/models/ko-sroberta-multitask
 # 6. 포트 개방
 EXPOSE 8000
 # 7. 컨테이너 실행 명령
