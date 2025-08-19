@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
     
     yield
     
-    # 종료 시 - 정리 작업 (필요한 경우)
+    # 종료 시 - 정리 작업
     logger.info("서버 종료")
 
 # FastAPI 앱 생성
@@ -104,7 +104,7 @@ async def process_query(request: QueryRequest):
         result = agent.process_query(request.query)
         logger.info(f"에이전트 원본 결과: {result}")
 
-        # 1. tool_calls 데이터 가공 (이전과 동일)
+        # 1. tool_calls 데이터 가공
         simplified_tool_calls = []
         original_tool_calls = result.get('tool_calls', [])
         for call in original_tool_calls:
