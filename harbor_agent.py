@@ -112,7 +112,7 @@ class GeminiClient:
 
 class ChromaDBManager:
     """ChromaDB 관리 클래스"""
-    def __init__(self, db_path: str = "./chroma_db"):  # 🔄 경로 수정
+    def __init__(self, db_path: str = "./chroma_db"):
         self.client = chromadb.PersistentClient(path=db_path)
         self.legal_collection = None
         self.manual_collection = None
@@ -179,8 +179,8 @@ class HarborAgentTools:
 
 class HarborAgent:
     """항만 규정안내 및 상황대응 Agent"""
-    def __init__(self, api_key: str, db_path: str = "./chroma_db"):  # 🔄 매개변수명 변경 및 경로 수정
-        self.gemini = GeminiClient(api_key)  # 🔄 매개변수명 변경
+    def __init__(self, api_key: str, db_path: str = "./chroma_db"):
+        self.gemini = GeminiClient(api_key)
         self.db_manager = ChromaDBManager(db_path)
         self.tools = HarborAgentTools(self.db_manager)
         self.conversation_history = []
@@ -238,15 +238,14 @@ class HarborAgent:
                 else: # "error"
                     return {"answer": response.get("content", "오류가 발생했습니다."), "tool_calls": tool_results_log, "iterations": iteration}
 
-            # --- ✨ 핵심 수정 부분 시작 ✨ ---
             # 최대 반복 횟수에 도달한 경우, 강제로 답변 생성
             logger.info(f"최대 반복 횟수({max_iterations}회)에 도달했습니다. 현재까지 수집된 정보로 최종 답변을 생성합니다.")
             
-            # 최종 답변을 생성하라는 지시를 추가
+            # 최종 답변을 생성하라는 지시
             final_instruction = "지금까지의 도구 실행 결과를 모두 종합하여 사용자의 최초 질문에 대한 최종 답변을 'content' 필드에 담아 JSON 형식으로 작성해주세요. 더 이상 도구를 호출할 수 없습니다. 만약 정보가 부족하다면, 현재까지 확인된 내용과 직접 탐색한 정보를 바탕으로 답변해야 합니다."
             messages.append({"role": "user", "content": final_instruction})
             
-            # 'tools=None'으로 설정하여 더 이상 도구를 사용하지 못하도록 하고 API 호출
+            # 더 이상 도구를 사용하지 못하도록 하고 API 호출
             final_response = self.gemini.generate_response(messages, tools=None)
             
             if final_response["type"] == "text":
@@ -257,7 +256,6 @@ class HarborAgent:
 
             self.conversation_history.append({"role": "assistant", "content": final_answer})
             return {"answer": final_answer, "tool_calls": tool_results_log, "iterations": iteration}
-            # --- ✨ 핵심 수정 부분 끝 ✨ ---
 
         except Exception as e:
             logger.error(f"process_query 처리 중 심각한 오류 발생: {e}", exc_info=True)
